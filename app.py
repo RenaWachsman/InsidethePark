@@ -185,8 +185,7 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
             with col3:
                 if st.button(f"Find Out More about {row['name']}", 
                              key=f"find_out_more_{row['jersey_number']}"):
-                    st.session_state.player_details_shown[row['jersey_number']]
-                    = True
+                    st.session_state.player_details_shown[row['jersey_number']] = True
 
             if st.session_state.player_details_shown.get(row['jersey_number'],
                                                          False):
