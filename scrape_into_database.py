@@ -3,6 +3,7 @@ from database import create_db, insert_teams_and_players
 from data_displays import add_lat_lng_columns, geocode_and_update_teams
 
 
+# Makes the Scrape and the Database Creation Happen 
 def main():
     url = "https://www.mlb.com/team"
     teams_data = scrape_teams(url)
