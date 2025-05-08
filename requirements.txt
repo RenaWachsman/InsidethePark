@@ -8,3 +8,5 @@ numpy==2.2.5
 geopy==2.4.1
 coverage==7.8.0
 ipykernel==6.29.5
+bs4
+json
