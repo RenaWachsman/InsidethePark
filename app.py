@@ -201,15 +201,15 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
                 if player_info:
                     external_player_id = player_info.get('idPlayer', 0)
                     st.write(
-                        f"**🎂 Birthday:** \
+                        f"**🎂 Birthday:**
                         {player_info.get('dateBorn', 'Not available')}")
                     st.write(
-                        f"**🌍 Nationality:** \
+                        f"**🌍 Nationality:**
                             {player_info.get('strNationality',
                                              'Not available')}"
                     )
                     st.write(
-                        f"**📍 Position:** \
+                        f"**📍 Position:**
                         {player_info.get('strPosition', 'Not available')}")
 
                     try:
