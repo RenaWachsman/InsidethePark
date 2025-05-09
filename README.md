@@ -6,7 +6,7 @@
 
 ## 📛 Badges
 
-![coverage](https://img.shields.io/badge/coverage-70%25-yellowgreen)   ![Tests](https://github.com/RenaWachsman/InsidethePark/actions/workflows/tests.yml/badge.svg)
+![Tests](https://github.com/RenaWachsman/InsidethePark/actions/workflows/tests.yml/badge.svg)   ![coverage](coverage.svg)
 
 ---
 ## 📦 Features
@@ -35,7 +35,7 @@ To run the app locally:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/RenaWachsman/insidethepark.git
+git clone https://github.com/RenaWachsman/InsidethePark.git
 cd inside-the-park
 ```
 
@@ -90,5 +90,3 @@ To run tests and check coverage:
 ```bash
 python -m pytest --cov
 ```
-
-Make sure `coverage.py` is installed and set up in `requirements.txt`.
