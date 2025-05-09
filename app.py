@@ -201,16 +201,19 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
                 if player_info:
                     external_player_id = player_info.get('idPlayer', 0)
                     st.write(
-                        f"**🎂 Birthday:**
-                        {player_info.get('dateBorn', 'Not available')}")
-                    st.write(
-                        f"**🌍 Nationality:**
-                            {player_info.get('strNationality',
-                                             'Not available')}"
+                        f"**🎂 Birthday:** "
+                        f"{player_info.get('dateBorn', 'Not available')}"
                     )
+
                     st.write(
-                        f"**📍 Position:**
-                        {player_info.get('strPosition', 'Not available')}")
+                        f"**🌍 Nationality:** "
+                        f"{player_info.get('strNationality', 'Not available')}"
+                    )
+
+                    st.write(
+                        f"**📍 Position:** "
+                        f"{player_info.get('strPosition', 'Not available')}"
+                    )
 
                     try:
                         player_honors = fetch_player_honors(external_player_id)
