@@ -71,7 +71,6 @@ else:
     st.session_state['menu_option'] = selected_sidebar
 # endregion
 
-
 # region API Calls
 def fetch_player_info(player_name):
     """Fetch basic player info."""
@@ -116,7 +115,6 @@ def choosing_team():
         st.session_state['selected_team'] = team_name_to_id[selected_team_name]
         st.rerun()
 # endregion
-
 
 # region Choose a Team Page
 if st.session_state['menu_option'] == "Choose a Team":
