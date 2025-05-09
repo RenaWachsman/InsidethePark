@@ -106,14 +106,13 @@ def choosing_team():
     teams_df = get_all_teams()
     team_name_to_id = {row['name']: row['id']
                        for _, row in teams_df.iterrows()}
-    team_names = ["-- You have not yet selected a team. Please Select! --"] + \
+    team_names = ["-- Please select a team.--"] + \
         list(team_name_to_id.keys())
 
     selected_team_name = st.selectbox(
         "Select a team", team_names, key="selected_team_name")
 
-    if selected_team_name != "-- You have not yet selected a team. \
-            Please Select! --":
+    if selected_team_name != "-- Please select a team.--":
         st.session_state['selected_team'] = team_name_to_id[selected_team_name]
         st.rerun()
 # endregion
