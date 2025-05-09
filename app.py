@@ -176,10 +176,10 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
     players_df = get_players_by_team_id(int(get_selected_team()))
 
     for _, row in players_df.iterrows():
-        with st.expander(f"**# {row
-                                ['jersey_number']} - {row['name']}**",
-                         expanded=False
-                         ):
+        with st.expander(
+            f"**# {row['jersey_number']} - {row['name']}**",
+            expanded=False
+        ):
             col1, col2, col3 = st.columns(3)
             with col1:
                 st.image(row['headshot_url'], width=100)
