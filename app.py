@@ -17,11 +17,11 @@ conn = sqlite3.connect('mlb.db')
 
 # Configure Streamlit page settings
 st.set_page_config(page_title="Inside the Park", page_icon="⚾",
-                   layout="centered")
+                   layout="wide")
 
 # Display main title
 st.markdown("""
-    <h1 style="text-align: center; color: #0033cc;">
+    <h1 style="text-align: left; color: #0033cc;">
         ⚾ Inside the Park ⚾
     </h1>
 """, unsafe_allow_html=True)
@@ -40,7 +40,7 @@ st.markdown("""
 # region Sidebar Navigation
 with st.sidebar:
     selected_sidebar = option_menu(
-        "In the Park",
+        "Main Menu",
         ["Choose a Team", "Team Info", "Get to Know the Players",
             "Team Trivia", "MLB Data", "Ask the Ump"],
         icons=['play', 'trophy', 'person',
