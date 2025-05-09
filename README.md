@@ -2,10 +2,6 @@
 
 **Inside the Park** is a fun and interactive Streamlit web app for exploring everything Major League Baseball. You can view detailed info about every team and player, visualize league-wide stats, and play trivia games. It also includes a built-in AI umpire powered by OpenAI to answer your baseball questions.
 
----
-
-## 📛 Badges
-
 ![Tests](https://github.com/RenaWachsman/InsidethePark/actions/workflows/tests.yml/badge.svg)   ![coverage](coverage.svg)
 
 ---
