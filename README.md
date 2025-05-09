@@ -1,60 +1,94 @@
-# ⚾ Inside the Park – [Click here to open the app!](https://insidethepark.streamlit.app/)
+# ⚾ Inside the Park - [Click Here!](https://inside-the-park.streamlit.app)
 
-## Overview  
 **Inside the Park** is a fun and interactive Streamlit web app for exploring everything Major League Baseball. You can view detailed info about every team and player, visualize league-wide stats, and play trivia games. It also includes a built-in AI umpire powered by OpenAI to answer your baseball questions.
 
 ---
 
-## Features  
-- 🎯 A trivia game where you answer questions about your selected MLB team  
-- 📇 Team explorer with stadium details, addresses, and website links  
-- 🧢 Full player rosters with headshots, bios, past teams, and more  
-- 🗺️ Interactive map showing all MLB stadiums  
-- 🔢 Jersey number insights and search across the league  
-- 🤖 Built-in AI "umpire" that answers your baseball questions, rules, and facts  
-- ✅ Unit tested and tracked with coverage  
+## 📛 Badges
+
+![coverage](https://img.shields.io/badge/coverage-70%25-yellowgreen)
+
+---
+## 📦 Features
+
+- Scrapes MLB ballpark data from a public website
+- Retrieves player details and summaries from APIs
+- Stores data in a local SQLite3 database
+- Provides interactive visualizations and data manipulation
+- Integrates OpenAI ChatGPT for intelligent responses
+- Fully deployable on Streamlit Cloud
+
+- 🎯 A trivia game where you answer questions about your selected MLB team
+- 🏟️ Team explorer with stadium details, addresses, and website links
+- 🧢 Full player rosters with headshots, honors, past teams, and more
+- 🗺️ Interactive map showing all MLB stadiums
+- 🔢 Jersey number insights and search across the league
+- 🤖 Built-in AI "umpire" that answers your baseball questions, rules, and facts
+- ✅ Unit tested and tracked with coverage
 
 ---
 
-## Deployed App  
-You can deploy your app to **Streamlit Cloud**:
+## 🛠️ Installation & Local Setup
 
-1. Push the repo to GitHub  
-2. Go to [streamlit.io/cloud](https://streamlit.io/cloud)  
-3. Click “Create App”  
-4. Choose `RenaWachsman/InsidethePark`  
-5. Set the main file to `Main.py`  
-6. Under "Advanced Settings", add your OpenAI API key under **Secrets**  
-7. Click **Deploy**
+To run the app locally:
 
----
+### 1. Clone the repository
 
-## ChatGPT Integration  
-This project uses AzureOpenAI's GPT API to:
+```bash
+git clone https://github.com/RenaWachsman/inside-the-park.git
+cd inside-the-park
+```
 
-- Answer fan questions in a chat-style interface  
-- Provide fun, informative context about players, teams, and game rules  
+### 2. Create a virtual environment and activate it
 
-**How It Works:**  
-In the app, prompts are passed through the `openai` library and displayed inside the Streamlit interface.
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
----
+### 3. Install dependencies
 
-## Dependencies & Installation  
-
-### Required Python Packages  
-This project requires:
-
-- `streamlit` – Web app framework  
-- `streamlit-option-menu` – Sidebar menus  
-- `openai` – AI chat assistant  
-- `beautifulsoup4` – Web scraping  
-- `requests` – HTTP requests  
-- `pandas` – Data manipulation  
-- `geopy` – Geolocation and mapping  
-- `pytest`, `coverage` – Testing  
-- `ipykernel` – Jupyter/Streamlit support  
-
-### Install Dependencies  
 ```bash
 pip install -r requirements.txt
+```
+
+### 4. Set up environment variables
+
+Create a `secrets.toml` in `.streamlit/`:
+
+```
+# .streamlit/secrets.toml
+OPENAI_API_KEY=your-openai-api-key
+END_POINT=your-maps-api-key
+```
+
+### 5. Run the app
+
+```bash
+streamlit run app.py
+```
+
+---
+
+## 🤖 ChatGPT Integration
+
+The app uses the OpenAI API to provide natural language summaries and insights about Major League Baseball, it's players, rules and history,
+
+---
+
+## ✅ Testing
+
+This project includes tests for:
+
+- Web scraping and API functions (mocked)
+- Database interactions (CRUD)
+- Core logic
+- Streamlit interface behavior
+
+To run tests and check coverage:
+
+```bash
+python -m pytest --cov
+```
+
+Make sure `coverage.py` is installed and set up in `requirements.txt`.
