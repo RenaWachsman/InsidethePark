@@ -35,7 +35,7 @@ To run the app locally:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/RenaWachsman/inside-the-park.git
+git clone https://github.com/RenaWachsman/insidethepark.git
 cd inside-the-park
 ```
 
