@@ -35,7 +35,7 @@ def create_db(db_name="mlb.db"):
     return conn
 
 
-def insert_teams_and_players(conn, teams_data):
+def insert_teams_and_players(conn, teams_data, player_scraper=scrape_players):
     cur = conn.cursor()
 
     for team in teams_data:
@@ -50,10 +50,12 @@ def insert_teams_and_players(conn, teams_data):
 
         conn.commit()
 
-        cur.execute("SELECT id FROM teams WHERE team_ext = ?", (team['team_ext'],))
+        cur.execute("SELECT id FROM teams WHERE team_ext = ?",
+                    (team['team_ext'],))
         team_id = cur.fetchone()[0]
 
-        players = scrape_players(team['team_ext'])
+        # Use the player_scraper function to scrape players
+        players = player_scraper(team['team_ext'])
 
         for player in players:
             cur.execute("""
@@ -104,11 +106,14 @@ def get_players_by_team_id(team_id):
         )
 
 
-def get_team_name_by_id(team_id):
+def get_team_name_by_id(team_id, conn=None):
     """
     Get team name by team_id.
     """
-    with get_connection() as conn:
+    if conn is None:
+        conn = get_connection()
+
+    with conn:
         df = pd.read_sql_query(
             "SELECT name FROM teams WHERE id = ?", conn, params=(team_id,)
         )

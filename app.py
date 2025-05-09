@@ -6,7 +6,7 @@ from streamlit_option_menu import option_menu
 
 from api import get_player_info, get_player_honors, get_player_teams
 from database import get_all_teams, get_team_by_id, get_players_by_team_id
-from trivia import st_game_play
+from trivia_game import TriviaGame, new_game
 from ai import ai_bot
 from data_displays import stadium_map, jersey_distribution, players_by_jersey
 # endregion
@@ -16,7 +16,8 @@ from data_displays import stadium_map, jersey_distribution, players_by_jersey
 conn = sqlite3.connect('mlb.db')
 
 # Configure Streamlit page settings
-st.set_page_config(page_title="Inside the Park", page_icon="⚾", layout="wide")
+st.set_page_config(page_title="Inside the Park", page_icon="⚾",
+                   layout="centered")
 
 # Display main title
 st.markdown("""
@@ -39,7 +40,7 @@ st.markdown("""
 # region Sidebar Navigation
 with st.sidebar:
     selected_sidebar = option_menu(
-        "Main Menu",
+        "In the Park",
         ["Choose a Team", "Team Info", "Get to Know the Players",
             "Team Trivia", "MLB Data", "Ask the Ump"],
         icons=['play', 'trophy', 'person',
@@ -93,7 +94,8 @@ def fetch_player_teams(player_id):
 
 
 def get_selected_team():
-    """Returns the selected team from session state or prompt the user to choose."""
+    """Returns the selected team from session state or \
+        prompt the user to choose."""
     if 'selected_team' not in st.session_state:
         choosing_team()
     return st.session_state.get('selected_team')
@@ -110,7 +112,8 @@ def choosing_team():
     selected_team_name = st.selectbox(
         "Select a team", team_names, key="selected_team_name")
 
-    if selected_team_name != "-- You have not yet selected a team. Please Select! --":
+    if selected_team_name != "-- You have not yet selected a team. \
+            Please Select! --":
         st.session_state['selected_team'] = team_name_to_id[selected_team_name]
         st.rerun()
 # endregion
@@ -118,8 +121,9 @@ def choosing_team():
 
 # region Choose a Team Page
 if st.session_state['menu_option'] == "Choose a Team":
-    st.subheader("Teams")
-    st.write("Select a Team to Learn about their Players!")
+    new_game()  # reset in case a games in progress
+    st.subheader("MLB Teams")
+    st.write("Select your Favorite Team to Interact with!")
 
     df_teams = pd.read_sql_query("SELECT * FROM teams", conn)
 
@@ -175,7 +179,10 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
     players_df = get_players_by_team_id(int(get_selected_team()))
 
     for _, row in players_df.iterrows():
-        with st.expander(f"**# {row['jersey_number']} - {row['name']}**", expanded=False):
+        with st.expander(f"**# {row
+                                ['jersey_number']} - {row['name']}**",
+                         expanded=False
+                         ):
             col1, col2, col3 = st.columns(3)
             with col1:
                 st.image(row['headshot_url'], width=100)
@@ -183,9 +190,11 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
                 st.markdown(f"**Name**: {row['name']}")
                 st.markdown(f"**Jersey Number**: {row['jersey_number']}")
             with col3:
-                if st.button(f"Find Out More about {row['name']}", 
+                if st.button(f"Find Out More about {row['name']}",
                              key=f"find_out_more_{row['jersey_number']}"):
-                    st.session_state.player_details_shown[row['jersey_number']] = True
+                    st.session_state.player_details_shown[row
+                                                          ['jersey_number']
+                                                          ] = True
 
             if st.session_state.player_details_shown.get(row['jersey_number'],
                                                          False):
@@ -198,7 +207,10 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
                         f"**🎂 Birthday:** \
                         {player_info.get('dateBorn', 'Not available')}")
                     st.write(
-                        f"**🌍 Nationality:** {player_info.get('strNationality', 'Not available')}")
+                        f"**🌍 Nationality:** \
+                            {player_info.get('strNationality',
+                                             'Not available')}"
+                    )
                     st.write(
                         f"**📍 Position:** \
                         {player_info.get('strPosition', 'Not available')}")
@@ -216,7 +228,7 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
                                 f"- 🏆 **{honor['honour']}** with ** \
                                 {honor['team_name']} \
                                 ** in **{honor['year']}**"
-                                )
+                            )
                     else:
                         st.write("No honors found.")
 
@@ -248,7 +260,77 @@ elif st.session_state['menu_option'] == "Team Trivia":
     if 'selected_team' not in st.session_state:
         choosing_team()
     else:
-        st_game_play()
+        with st.expander("📖 The Playbook"):
+            st.markdown("""
+                1. **Team Selection**: Pick your favorite baseball team.
+                2. **Answer Questions**: You'll be asked 5 trivia questions
+                        based on your selected team and its players.
+                3. **Scoring**:
+                    - Correct answer = **Base**
+                    - Wrong answer = **Strike**
+                4. **Game Rules**:
+                    - **3 strikes** and you're out.
+                    - You get **5 pitches** (questions) max.
+                    - Game ends after 5 questions or 3 strikes.
+                5. **Performance Grades**:
+                    - **1 Correct**: "Single!"
+                    - **2 Correct**: "Double!"
+                    - **3 Correct**: "Triple!"
+                    - **4 Correct**: "Home Run!"
+                    - **5 Correct**: "Grand Slam!"
+                """)
+        team_id = int(st.session_state["selected_team"])
+        game = TriviaGame(team_id)  # start a trivia game
+        trivia_q = game.get_question()
+
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            team = get_team_by_id(team_id)
+            st.markdown(f"## Play Ball!\n##### Your team: {team['name']}")
+
+            if trivia_q:
+                if trivia_q.image_url:
+                    st.image(trivia_q.image_url, width=150)
+
+                user_answer = st.radio(trivia_q.question, trivia_q.choices,
+                                       key=f"answer_{team_id}")
+
+                if not st.session_state[game.submit_key]:
+                    if st.button("Submit"):
+                        st.session_state[game.submit_key] = True
+                        game.submit_answer(user_answer)  # check user's answer
+
+                if st.session_state[game.submit_key]:
+                    if not game.is_game_over():  # check if game is over
+                        if st.button("Next Pitch"):  # if not new question
+                            game.next_pitch()
+                    else:
+                        game.finalize_status()
+                        st.markdown(f"#### GAME OVER! \
+                                    {st.session_state['status']}")
+                        if st.button("🔁 Start New Game"):
+                            new_game()  # clear for a new game
+                            st.rerun()  # start a new game
+        with col2:
+            st.markdown("## Scoreboard ")
+            st.markdown("####")
+            st.markdown(f"""
+                <div style='background-color: #f5f5f5; padding: 1rem;
+                    border-radius: 10px; box-shadow: 2px 2px
+                        5px rgba(0,0,0,0.1);'>
+                    <p style='font-size: 18px;'>⚾ <strong>Pitches:</strong>
+                        {st.session_state.pitches}</p>
+                    <p style='font-size: 18px;'>🧮 <strong>Pitches Remaining: \
+                        </strong>
+                        {5 - st.session_state.pitches}</p>
+                    <p style='font-size: 18px;'>❌ <strong>Strikes:</strong>
+                        {st.session_state.strikes}</p>
+                    <p style='font-size: 18px;'>✅ <strong>Correct:</strong>
+                        {st.session_state.bases}</p>
+                    <p style='font-size: 18px;'>🏅 <strong>Status:</strong>
+                        {st.session_state.status}</
+                </div>
+                """, unsafe_allow_html=True)
 # endregion
 
 # region MLB Data Page

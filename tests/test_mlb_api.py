@@ -1,9 +1,6 @@
 from unittest.mock import patch, MagicMock
 import requests
 from api import get_player_info, get_player_teams, get_player_honors
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 
 # Test for get_player_info

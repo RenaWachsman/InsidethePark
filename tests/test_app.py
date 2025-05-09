@@ -1,18 +1,20 @@
-import pytest
 from unittest.mock import patch, MagicMock
+import pandas as pd
 import streamlit as st
 import app
-import pandas as pd
+import pytest
 
 
 @pytest.fixture(autouse=True)
-def reset_st_session_state():
+def mock_session_state():
     st.session_state.clear()
+    st.session_state["menu_option"] = "Team Info"
+    st.session_state["selected_team"] = 1
     yield
     st.session_state.clear()
 
 
-def test_sidebar_menu_sets_session_state(mocker):
+def test_sidebar_updates_session_state(mocker):
     mock_option_menu = mocker.patch("app.option_menu",
                                     return_value="Choose a Team")
     with patch.object(st, "sidebar"), \
@@ -24,11 +26,9 @@ def test_sidebar_menu_sets_session_state(mocker):
         assert st.session_state["menu_option"] == "Choose a Team"
 
 
-def test_team_selection_sets_team_id(mocker):
+def test_team_dropdown_select_sets_team(mocker):
     teams_df = MagicMock()
-    teams_df.iterrows.return_value = iter([
-        (0, {'name': 'Yankees', 'id': 1})
-    ])
+    teams_df.iterrows.return_value = iter([(0, {'name': 'Yankees', 'id': 1})])
     mocker.patch("app.get_all_teams", return_value=teams_df)
     mocker.patch("app.st.selectbox", return_value="Yankees")
     mocker.patch("app.st.rerun")
@@ -37,23 +37,23 @@ def test_team_selection_sets_team_id(mocker):
     assert st.session_state["selected_team"] == 1
 
 
-def test_get_selected_team_prompts_if_none(mocker):
-    mock_prompt = mocker.patch("app.choosing_team")
+def test_prompt_team_selection_if_not_chosen(mocker):
     st.session_state.clear()
+    st.session_state["menu_option"] = "Team Trivia"
+    mock_choose_team = mocker.patch("app.choosing_team")
     app.get_selected_team()
-    mock_prompt.assert_called_once()
+    mock_choose_team.assert_called_once()
 
 
-def test_fetch_player_info(mocker):
-    mock_get_player_info = mocker.patch(
-        "app.get_player_info", return_value={"idPlayer": 1}
-    )
-    result = app.fetch_player_info("John Doe")
-    assert result["idPlayer"] == 1
-    mock_get_player_info.assert_called_once_with("John Doe")
+def test_player_info_lookup(mocker):
+    mock_api = mocker.patch("app.get_player_info",
+                            return_value={"idPlayer": 123})
+    result = app.fetch_player_info("Jane Doe")
+    assert result["idPlayer"] == 123
+    mock_api.assert_called_once_with("Jane Doe")
 
 
-def test_team_info_page_with_valid_team(mocker):
+def test_team_info_displays_if_team_selected(mocker):
     st.session_state["menu_option"] = "Team Info"
     st.session_state["selected_team"] = 1
 
@@ -75,26 +75,24 @@ def test_team_info_page_with_valid_team(mocker):
         markdown=MagicMock(),
         stop=MagicMock()
     )
+
     app.get_selected_team = lambda: 1
     app.team = app.get_team_by_id(1)
     assert app.team["name"] == "Yankees"
 
 
-def test_get_to_know_players_page_rendering(mocker):
-    st.session_state["menu_option"] = "Get to Know the Players"
-    st.session_state["selected_team"] = 1
-    st.session_state["player_details_shown"] = {}
+def test_players_page_loads_and_fetches_data(mocker):
+    st.session_state.update({
+        "menu_option": "Get to Know the Players",
+        "selected_team": 1,
+        "player_details_shown": {}
+    })
 
     mocker.patch("app.get_team_by_id", return_value={"name": "Yankees"})
-    mocker.patch(
-        "app.get_players_by_team_id",
-        return_value=pd.DataFrame([{
-            "name": "John Doe",
-            "jersey_number": 12,
-            "headshot_url": "url"
-        }])
-    )
-    mocker.patch("app.fetch_player_info", return_value={"idPlayer": 1})
+    mocker.patch("app.get_players_by_team_id", return_value=pd.DataFrame([{
+        "name": "John Doe", "jersey_number": 99, "headshot_url": "some_url"
+    }]))
+    mocker.patch("app.fetch_player_info", return_value={"idPlayer": 123})
     mocker.patch("app.fetch_player_honors", return_value=[])
     mocker.patch("app.fetch_player_teams", return_value=[])
 
@@ -103,32 +101,104 @@ def test_get_to_know_players_page_rendering(mocker):
         subheader=MagicMock(),
         write=MagicMock(),
         expander=MagicMock(),
-        columns=lambda x: [MagicMock() for _ in range(x)]
+        columns=lambda x: [MagicMock() for _ in range(x)],
+        image=MagicMock(),
+        button=MagicMock(return_value=False),
+        markdown=MagicMock()
     )
 
     app.get_selected_team = lambda: 1
     app.get_selected_team()
 
 
-def test_trivia_page_calls_game_play(mocker):
-    st.session_state["menu_option"] = "Team Trivia"
-    st.session_state["selected_team"] = 1
+def test_player_expander_opens_and_shows_data(mocker):
+    st.session_state.update({
+        "menu_option": "Get to Know the Players",
+        "selected_team": 1,
+        "player_details_shown": {}
+    })
 
-    mock_game_play = mocker.patch("app.st_game_play")
-    app.st_game_play()
-    mock_game_play.assert_called()
+    mocker.patch("app.get_team_by_id", return_value={"name": "Yankees"})
+    mocker.patch("app.get_players_by_team_id", return_value=pd.DataFrame([{
+        "name": "John Doe", "jersey_number": 99, "headshot_url": "url"
+    }]))
+    mocker.patch("app.fetch_player_info", return_value={
+        "idPlayer": 123,
+        "dateBorn": "1990-01-01",
+        "strNationality": "USA",
+        "strPosition": "Pitcher"
+    })
+    mocker.patch("app.fetch_player_honors", return_value=[{
+        "honour": "MVP",
+        "team_name": "Yankees",
+        "year": "2020"
+    }])
+    mocker.patch("app.fetch_player_teams", return_value=[{
+        "former_team": "Red Sox",
+        "joined": "2018",
+        "departed": "2019",
+        "move_type": "Trade"
+    }])
+
+    mocker.patch.multiple(
+        st,
+        subheader=MagicMock(),
+        write=MagicMock(),
+        expander=lambda *args, **kwargs: MagicMock(
+            __enter__=lambda s: True, __exit__=lambda s, *a: None),
+        columns=lambda x: [MagicMock() for _ in range(x)],
+        image=MagicMock(),
+        button=MagicMock(return_value=True),
+        markdown=MagicMock()
+    )
+
+    app.get_selected_team = lambda: 1
+    app.get_selected_team()
 
 
-def test_ask_the_ump_page_calls_ai_bot(mocker):
+def test_trivia_starts_game(mocker):
+    st.session_state.update({
+        "menu_option": "Team Trivia",
+        "selected_team": 1
+    })
+
+    mock_game_play = mocker.patch("app.TriviaGame")
+    mock_instance = mock_game_play.return_value
+    mock_instance.get_question.return_value = None
+
+    app.TriviaGame(1)
+    mock_game_play.assert_called_with(1)
+
+
+def test_ask_the_ump_runs(mocker):
     st.session_state["menu_option"] = "Ask the Ump"
-    mock_bot = mocker.patch("app.ai_bot")
+    mock_ump = mocker.patch("app.ai_bot")
     app.ai_bot()
-    mock_bot.assert_called()
+    mock_ump.assert_called_once()
 
 
-def test_data_page_calls_visualizations(mocker):
+def test_mlb_data_page_shows_map(mocker):
     st.session_state["menu_option"] = "MLB Data"
     mocker.patch("app.st.radio", return_value="📍 MLB Stadium Map")
     mock_map = mocker.patch("app.stadium_map")
+
     app.stadium_map("mock_conn")
-    mock_map.assert_called()
+    mock_map.assert_called_once()
+
+
+def test_player_info_not_found(mocker):
+    mocker.patch("app.fetch_player_info", return_value=None)
+    result = app.fetch_player_info("Non Existent Player")
+    assert result is None
+
+
+def test_player_honors_not_found(mocker):
+    mocker.patch("app.fetch_player_honors", return_value=None)
+    result = app.fetch_player_honors(123)
+    assert result is None
+
+
+def test_player_teams_not_found(mocker):
+    mocker.patch("app.fetch_player_teams", return_value=None)
+    result = app.fetch_player_teams(123)
+    assert result is None

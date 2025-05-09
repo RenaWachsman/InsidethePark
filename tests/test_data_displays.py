@@ -61,10 +61,10 @@ def test_geocode_and_update_teams():
     mock_location.longitude = -75.0
 
     with mock.patch("sqlite3.connect") as mock_connect, \
-         mock.patch(
-             "geopy.geocoders.Nominatim.geocode",
-             return_value=mock_location
-         ), \
+        mock.patch(
+        "geopy.geocoders.Nominatim.geocode",
+        return_value=mock_location
+    ), \
             mock.patch("time.sleep"):
 
         # Set up mock connection and cursor

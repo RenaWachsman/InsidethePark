@@ -6,6 +6,11 @@ import streamlit as st
 from types import SimpleNamespace
 
 
+@pytest.fixture(autouse=True)
+def reset_streamlit_session():
+    st.session_state.clear()
+
+
 # Mocking sqlite3 to avoid using an actual database
 @pytest.fixture
 def mock_sqlite3():
