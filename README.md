@@ -6,7 +6,7 @@
 
 ## 📛 Badges
 
-![coverage](https://img.shields.io/badge/coverage-70%25-yellowgreen)
+![coverage](https://img.shields.io/badge/coverage-70%25-yellowgreen)   ![Tests](https://github.com/RenaWachsman/InsidethePark/actions/workflows/tests.yml/badge.svg)
 
 ---
 ## 📦 Features
