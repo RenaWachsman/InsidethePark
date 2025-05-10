@@ -5,9 +5,10 @@ import pandas as pd
 
 
 def get_teams_and_players():
+    # function to pull all teams together for the ai bot to have data
     with sqlite3.connect("mlb.db") as conn:
         query = """
-            SELECT 
+            SELECT
                 teams.name AS team_name,
                 players.name AS player_name
             FROM teams
@@ -26,8 +27,7 @@ def get_teams_and_players():
     return teams_and_players
 
 
-def ai_bot(client=None):
-    # Dependency injection for testability
+def ai_bot(client=None):  # parameter is for testibility
     if client is None:
         client = AzureOpenAI(
             api_key=st.secrets["OPENAI_API_KEY"],

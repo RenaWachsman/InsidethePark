@@ -1,5 +1,8 @@
+# This Module runs the Scrape
 import requests
 from bs4 import BeautifulSoup
+
+""" Scrape team and team details from mlb.com/teams"""
 
 
 def scrape_teams(url):
@@ -46,6 +49,9 @@ def scrape_teams(url):
         })
 
     return teams_data
+
+
+"""For each team Scrape the Players from that teams Roster Page"""
 
 
 def scrape_players(team_ext):

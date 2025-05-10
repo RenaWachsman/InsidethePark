@@ -1,3 +1,5 @@
+# This module runs the Streamlit App - it is run off of sidebar Page Navigation
+
 # region Imports
 import streamlit as st
 import pandas as pd
@@ -11,7 +13,10 @@ from ai import ai_bot
 from data_displays import stadium_map, jersey_distribution, players_by_jersey
 # endregion
 
+
 # region Setup
+# This region set up the app
+
 # Connect to SQLite database
 conn = sqlite3.connect('mlb.db')
 
@@ -36,6 +41,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 # endregion
+
 
 # region Sidebar Navigation
 with st.sidebar:
@@ -64,32 +70,15 @@ with st.sidebar:
         }
     )
 
-# Sync menu selection with session state
+# Sync menu selection with session state to navigate
 if 'menu_option' not in st.session_state:
     st.session_state['menu_option'] = selected_sidebar
 else:
     st.session_state['menu_option'] = selected_sidebar
 # endregion
 
-# region API Calls
-def fetch_player_info(player_name):
-    """Fetch basic player info."""
-    return get_player_info(player_name)
-
-
-def fetch_player_honors(player_id):
-    """Fetch player honors."""
-    return get_player_honors(player_id)
-
-
-def fetch_player_teams(player_id):
-    """Fetch player's former teams."""
-    return get_player_teams(player_id)
-
-
-# endregion
-
 # region Team Selection
+# If a team is not selected most pages need a page chosen first
 
 
 def get_selected_team():
@@ -117,33 +106,52 @@ def choosing_team():
 # endregion
 
 # region Choose a Team Page
+# The first page of the app is a simple team selection from the database
+
+
 if st.session_state['menu_option'] == "Choose a Team":
     new_game()  # reset in case a games in progress
-    st.subheader("MLB Teams")
-    st.write("Select your Favorite Team to Interact with!")
-
-    df_teams = pd.read_sql_query("SELECT * FROM teams", conn)
+    st.markdown("## MLB Teams")
+    # display correct page instructions
+    if ('selected_team' not in st.session_state or
+            not st.session_state['selected_team']):
+        st.markdown("### Select your Favorite Team")
+    else:
+        team = get_team_by_id(int(get_selected_team()))
+        st.markdown(
+            f"### You chose the {team['name']}."
+            + "\n #### Use the side bar to interact with your team!"
+        )
+    df_teams = pd.read_sql_query(
+        "SELECT * FROM teams", conn)  # pull up all the teams
 
     cols_per_row = 2
     cols = st.columns(cols_per_row)
-
+    # display the teams in 2 columns with the logo
     for idx, row in df_teams.iterrows():
         col = cols[idx % cols_per_row]
         with col:
             with st.container():
                 inner_cols = st.columns([0.4, 2.6])
                 with inner_cols[0]:
-                    st.image(row['logo_url'], width=45)
+                    st.markdown(
+                        f"<img src='{row['logo_url']}' width='45' height='50' "
+                        "style='object-fit:contain;'/>",
+                        unsafe_allow_html=True
+                    )
                 with inner_cols[1]:
                     if st.button(
                         row['name'], key=row['name'],
                         help=f"Select {row['name']}"
                     ):
                         st.session_state['selected_team'] = row['id']
+                        st.rerun()  # so page will display chosen team
+    st.write("Team data is scraped from the [MLB.com](www.mlb.com/team) ")
 # endregion
 
 # region Team Info Page
 elif st.session_state['menu_option'] == "Team Info":
+    # This page displays simple information about the team from the database
     st.subheader("Get to Know the Team")
     st.write("Learn more about the Team!")
     selected_team = get_selected_team()
@@ -160,9 +168,10 @@ elif st.session_state['menu_option'] == "Team Info":
 # endregion
 
 # region Player Info Page
+# This page shows the players user can chose to see the player, details- api
 elif st.session_state['menu_option'] == "Get to Know the Players":
     st.subheader("Get to Know the Players")
-    st.write("Learn more about the players and their stats!")
+    st.write("Learn more about the players and their background!")
     if 'player_details_shown' not in st.session_state:
         st.session_state.player_details_shown = {}
 
@@ -175,6 +184,7 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
     st.subheader(f"{team['name']} Roster")
     players_df = get_players_by_team_id(int(get_selected_team()))
 
+    # display all the players
     for _, row in players_df.iterrows():
         with st.expander(
             f"**# {row['jersey_number']} - {row['name']}**",
@@ -187,6 +197,7 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
                 st.markdown(f"**Name**: {row['name']}")
                 st.markdown(f"**Jersey Number**: {row['jersey_number']}")
             with col3:
+                # button to see more information (call api)
                 if st.button(f"Find Out More about {row['name']}",
                              key=f"find_out_more_{row['jersey_number']}"):
                     st.session_state.player_details_shown[row
@@ -196,10 +207,13 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
             if st.session_state.player_details_shown.get(row['jersey_number'],
                                                          False):
                 st.markdown(
-                    f"#### **Additional Information about {row['name']}**")
-                player_info = fetch_player_info(row['name'])
+                    f"##### **Additional Information about {row['name']}**")
+                # api for this player
+                player_info = get_player_info(row['name'])
                 if player_info:
+                    # the api's id for player (diff then database)
                     external_player_id = player_info.get('idPlayer', 0)
+                    # display info from basic player api
                     st.write(
                         f"**🎂 Birthday:** "
                         f"{player_info.get('dateBorn', 'Not available')}"
@@ -216,7 +230,8 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
                     )
 
                     try:
-                        player_honors = fetch_player_honors(external_player_id)
+                        # call the honors api with the players id
+                        player_honors = get_player_honors(external_player_id)
                     except Exception as e:
                         player_honors = None
                         st.error(f"Error retrieving honors: {e}")
@@ -230,10 +245,12 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
                                 ** in **{honor['year']}**"
                             )
                     else:
+                        # some players have no honors
                         st.write("No honors found.")
 
                     try:
-                        former_teams = fetch_player_teams(external_player_id)
+                        # call the former teams api with players id
+                        former_teams = get_player_teams(external_player_id)
                     except Exception as e:
                         former_teams = None
                         st.error(f"Error retrieving former teams: {e}")
@@ -247,12 +264,19 @@ elif st.session_state['menu_option'] == "Get to Know the Players":
                                 {team.get('departed', 'N/A')}) \
                             >>Type: *{team['move_type']}*")
                     else:
+                        # some players have no former teams
                         st.write("No former teams found.")
                 else:
+                    # some players are not found in the api
                     st.warning("No additional information found.")
+    st.write(
+        "Player data is pulled from the SportsDB API- "
+        + "[www.thesportsdb.com](https://www.thesportsdb.com)"
+    )
 # endregion
 
 # region Team Trivia Page
+# This page is an interactive trivia game
 elif st.session_state['menu_option'] == "Team Trivia":
     st.subheader("The Grand Slam Quiz")
     st.write("Test your baseball knowledge with team-based trivia.")
@@ -260,6 +284,7 @@ elif st.session_state['menu_option'] == "Team Trivia":
     if 'selected_team' not in st.session_state:
         choosing_team()
     else:
+        # display the rules
         with st.expander("📖 The Playbook"):
             st.markdown("""
                 1. **Team Selection**: Pick your favorite baseball team.
@@ -281,7 +306,7 @@ elif st.session_state['menu_option'] == "Team Trivia":
                 """)
         team_id = int(st.session_state["selected_team"])
         game = TriviaGame(team_id)  # start a trivia game
-        trivia_q = game.get_question()
+        trivia_q = game.get_question()  # get a trivia question
 
         col1, col2 = st.columns([1, 1])
         with col1:
@@ -289,29 +314,36 @@ elif st.session_state['menu_option'] == "Team Trivia":
             st.markdown(f"## Play Ball!\n##### Your team: {team['name']}")
 
             if trivia_q:
+                # display the player associated with the game's image
                 if trivia_q.image_url:
                     st.image(trivia_q.image_url, width=150)
-
+                # display the choices as a radio button
                 user_answer = st.radio(trivia_q.question, trivia_q.choices,
                                        key=f"answer_{team_id}")
 
+                # button submit to check the answer
                 if not st.session_state[game.submit_key]:
                     if st.button("Submit"):
                         st.session_state[game.submit_key] = True
                         game.submit_answer(user_answer)  # check user's answer
 
+                # when the button submit is clicked
                 if st.session_state[game.submit_key]:
                     if not game.is_game_over():  # check if game is over
                         if st.button("Next Pitch"):  # if not new question
                             game.next_pitch()
                     else:
-                        game.finalize_status()
+                        game.finalize_status()  # if the game is over
                         st.markdown(f"#### GAME OVER! \
                                     {st.session_state['status']}")
                         if st.button("🔁 Start New Game"):
                             new_game()  # clear for a new game
                             st.rerun()  # start a new game
+            else:
+                # if no question is found
+                st.write("Trivia game unable to load please reload your page.")
         with col2:
+            # display the scoreboard
             st.markdown("## Scoreboard ")
             st.markdown("####")
             st.markdown(f"""
@@ -334,6 +366,7 @@ elif st.session_state['menu_option'] == "Team Trivia":
 # endregion
 
 # region MLB Data Page
+# This page offers 3 interactive maps to display data from the database
 elif st.session_state['menu_option'] == "MLB Data":
     st.subheader("Explore MLB Data")
 
@@ -341,7 +374,7 @@ elif st.session_state['menu_option'] == "MLB Data":
                       "📍 MLB Stadium Map", "👕 Jersey Number Distribution",
                       "🔢 Browse Players by Jersey Number"
                       ])
-
+    # call the correct interactive display
     if option == "📍 MLB Stadium Map":
         stadium_map(conn)
     elif option == "👕 Jersey Number Distribution":
@@ -353,5 +386,6 @@ elif st.session_state['menu_option'] == "MLB Data":
 # region Ask the Ump Page
 elif st.session_state['menu_option'] == "Ask the Ump":
     st.subheader("Ask the Ump")
+    # call ai bot
     ai_bot()
 # endregion

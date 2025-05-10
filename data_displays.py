@@ -1,11 +1,15 @@
+# This module creates 3 data displays
 import sqlite3
 from geopy.geocoders import Nominatim
 from time import sleep
 import streamlit as st
 import pandas as pd
 
+# First Data Display - map of the stadiums
+
 
 def add_lat_lng_columns():
+    """This function adds columns to the database"""
     conn = sqlite3.connect("mlb.db")
     cur = conn.cursor()
     try:
@@ -21,6 +25,7 @@ def add_lat_lng_columns():
 
 
 def geocode_and_update_teams():
+    """Find the coordinates of the stadiums - Using geocolater"""
     geolocator = Nominatim(user_agent="mlb_app")
     conn = sqlite3.connect("mlb.db")
     cur = conn.cursor()
@@ -50,6 +55,7 @@ def geocode_and_update_teams():
 
 
 def stadium_map(conn):
+    """This maps the stadiums on the map of the US"""
     df = pd.read_sql_query(
         "SELECT name, latitude, longitude FROM teams "
         "WHERE latitude IS NOT NULL AND longitude IS NOT NULL", conn
@@ -58,16 +64,22 @@ def stadium_map(conn):
     st.map(df)
 
 
+# Second Data Display- Jersey Distribution Bar Chart
+
 def jersey_distribution(conn):
+    """This function makes a bar chart of the jersey numbers """
     df = pd.read_sql_query("SELECT jersey_number FROM players", conn)
     df['jersey_number'] = pd.to_numeric(df['jersey_number'], errors='coerce')
     df = df.dropna()
     st.bar_chart(df['jersey_number'].value_counts().sort_index())
 
+# Second Data Display- Players by Number Slider
+
 
 def players_by_jersey(conn):
+    """This function is a slider to see players by a specific jersey number """
     st.markdown("#### Select a jersey number:")
-    jersey_number = st.slider("Choose a number", 0, 99, 0)
+    jersey_number = st.slider("", 0, 99, 0)
 
     df_players = pd.read_sql_query(
         """

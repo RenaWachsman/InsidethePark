@@ -1,11 +1,11 @@
 import requests
 
-# API URL for TheSportsDB (no trailing slash)
+# API URL for TheSportsDB API
 API_URL = "https://www.thesportsdb.com/api/v1/json/3"
 
 
 def get_player_info(player_name):
-    """Fetch minimal player information."""
+    """Get minimal player information."""
     try:
         formatted_player_name = player_name.replace(" ", "_")
         ext = "searchplayers.php?p="
@@ -34,7 +34,7 @@ def get_player_info(player_name):
 
 
 def get_player_teams(player_id):
-    """Fetch the list of former teams for a given player based on player ID."""
+    """GEt the list of former teams for a given player based on player ID."""
     try:
         ext = "lookupformerteams.php?id="
         response = requests.get(f"{API_URL}/{ext}{player_id}")
@@ -61,7 +61,7 @@ def get_player_teams(player_id):
 
 
 def get_player_honors(player_id):
-    """Fetch honors and achievements for the player based on player ID."""
+    """Get honors and achievements for the player based on player ID."""
     try:
         ext = "lookuphonours.php?id="
         response = requests.get(f"{API_URL}/{ext}{player_id}")

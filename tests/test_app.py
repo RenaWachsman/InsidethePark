@@ -2,6 +2,7 @@ from unittest.mock import patch, MagicMock
 import pandas as pd
 import streamlit as st
 import app
+import api
 import pytest
 
 
@@ -46,9 +47,9 @@ def test_prompt_team_selection_if_not_chosen(mocker):
 
 
 def test_player_info_lookup(mocker):
-    mock_api = mocker.patch("app.get_player_info",
+    mock_api = mocker.patch("api.get_player_info",
                             return_value={"idPlayer": 123})
-    result = app.fetch_player_info("Jane Doe")
+    result = api.get_player_info("Jane Doe")
     assert result["idPlayer"] == 123
     mock_api.assert_called_once_with("Jane Doe")
 
@@ -92,9 +93,9 @@ def test_players_page_loads_and_fetches_data(mocker):
     mocker.patch("app.get_players_by_team_id", return_value=pd.DataFrame([{
         "name": "John Doe", "jersey_number": 99, "headshot_url": "some_url"
     }]))
-    mocker.patch("app.fetch_player_info", return_value={"idPlayer": 123})
-    mocker.patch("app.fetch_player_honors", return_value=[])
-    mocker.patch("app.fetch_player_teams", return_value=[])
+    mocker.patch("api.get_player_info", return_value={"idPlayer": 123})
+    mocker.patch("api.get_player_honors", return_value=[])
+    mocker.patch("api.get_player_teams", return_value=[])
 
     mocker.patch.multiple(
         st,
@@ -122,18 +123,18 @@ def test_player_expander_opens_and_shows_data(mocker):
     mocker.patch("app.get_players_by_team_id", return_value=pd.DataFrame([{
         "name": "John Doe", "jersey_number": 99, "headshot_url": "url"
     }]))
-    mocker.patch("app.fetch_player_info", return_value={
+    mocker.patch("api.get_player_info", return_value={
         "idPlayer": 123,
         "dateBorn": "1990-01-01",
         "strNationality": "USA",
         "strPosition": "Pitcher"
     })
-    mocker.patch("app.fetch_player_honors", return_value=[{
+    mocker.patch("api.get_player_honors", return_value=[{
         "honour": "MVP",
         "team_name": "Yankees",
         "year": "2020"
     }])
-    mocker.patch("app.fetch_player_teams", return_value=[{
+    mocker.patch("api.get_player_teams", return_value=[{
         "former_team": "Red Sox",
         "joined": "2018",
         "departed": "2019",
@@ -187,18 +188,18 @@ def test_mlb_data_page_shows_map(mocker):
 
 
 def test_player_info_not_found(mocker):
-    mocker.patch("app.fetch_player_info", return_value=None)
-    result = app.fetch_player_info("Non Existent Player")
+    mocker.patch("api.get_player_info", return_value=None)
+    result = api.get_player_info("Non Existent Player")
     assert result is None
 
 
 def test_player_honors_not_found(mocker):
-    mocker.patch("app.fetch_player_honors", return_value=None)
-    result = app.fetch_player_honors(123)
+    mocker.patch("api.get_player_honors", return_value=None)
+    result = api.get_player_honors(123)
     assert result is None
 
 
 def test_player_teams_not_found(mocker):
-    mocker.patch("app.fetch_player_teams", return_value=None)
-    result = app.fetch_player_teams(123)
+    mocker.patch("api.get_player_teams", return_value=None)
+    result = api.get_player_teams(123)
     assert result is None

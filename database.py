@@ -1,7 +1,9 @@
+# This module creates and manages database and interactions
 import sqlite3
 from scraper import scrape_players
 import pandas as pd
-import streamlit as st
+
+"""Create Database"""
 
 
 def create_db(db_name="mlb.db"):
@@ -33,6 +35,9 @@ def create_db(db_name="mlb.db"):
 
     conn.commit()
     return conn
+
+
+"""Put Teams and Players into Database"""
 
 
 def insert_teams_and_players(conn, teams_data, player_scraper=scrape_players):
@@ -72,8 +77,14 @@ def insert_teams_and_players(conn, teams_data, player_scraper=scrape_players):
         conn.commit()
 
 
+""" Pull the connection - for easier use"""
+
+
 def get_connection():
     return sqlite3.connect("mlb.db")
+
+
+"""Return all the teams in the database"""
 
 
 def get_all_teams():
@@ -82,6 +93,9 @@ def get_all_teams():
             SELECT id, name, logo_url, stadium, stadium_addr, phone, team_ext
             FROM teams ORDER BY name
         """, conn)
+
+
+"""Get a team by id in the database"""
 
 
 def get_team_by_id(team_id):
@@ -93,7 +107,9 @@ def get_team_by_id(team_id):
         return df.iloc[0] if not df.empty else None
 
 
-@st.cache_data
+"""Get players by the team"""
+
+
 def get_players_by_team_id(team_id):
     """
     Get players for a team by team_id.
@@ -104,6 +120,9 @@ def get_players_by_team_id(team_id):
             "FROM players WHERE team_id = ?",
             conn, params=(team_id,)
         )
+
+
+"""Get the team name from the team ID"""
 
 
 def get_team_name_by_id(team_id, conn=None):

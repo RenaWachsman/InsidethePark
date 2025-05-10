@@ -1,7 +1,7 @@
 import pytest
 import streamlit as st
 from unittest.mock import MagicMock
-import trivia  # Keep this import so monkeypatch targets the right module
+import trivia_question
 
 
 # Fixtures
@@ -25,7 +25,7 @@ def mock_get_random_trivia_question(monkeypatch):
         return q
 
     # Monkeypatching the function to return the mock instead of calling the API
-    monkeypatch.setattr(trivia, "get_random_trivia_question", _mock)
+    monkeypatch.setattr(trivia_question, "get_random_trivia_question", _mock)
 
 
 @pytest.fixture
